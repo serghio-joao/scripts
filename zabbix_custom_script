@@ -1,0 +1,17 @@
+#Add below custom check to zabbix
+#UserParameter=custom.jenkins.mycheck[*],/bin/bash /usr/local/bin/howlong.sh $1 $2
+
+#Where zabbix check will containt arguments $1(name of jenkins job) $2(api password)
+
+JENKINS_JOB=$1
+API_USER="yourapp_user"
+API_PASS=$2
+
+
+
+# Get the jobs start timestamp
+JOB_TIMESTAMP=`curl --silent -X POST   "http://${API_USER}:${API_PASS}@jenkins:8080/job/${JENKINS_JOB}/lastBuild/api/json " |grep --color timestamp | cut -d':' -f 24 | cut -d',' -f1`
+
+#Return how long the job has been running in seconds
+CURRENT_TIME_EPOCH=$(($(date +%s)*1000))
+echo $((($CURRENT_TIME_EPOCH - $JOB_TIMESTAMP) / 1000))
