@@ -1,0 +1,9 @@
+BUCKET=s3bucket
+DISTRO_ID=CloudFRONT-DistroID
+
+echo "Dry run first to see which files are going to be uploaded and invalidated:"
+
+aws s3 sync --dryrun --recursive --exclude '*.scss' --exclude '.git/*' --exclude 'README.md' --exclude '*.twig'  ./ s3://${BUCKET}/ 
+echo "**************************"
+
+echo $(count=0;list=''; for i in `aws s3 sync  --recursive --exclude '*.scss' --exclude '.git/*' --exclude 'README.md' --exclude '*.twig'  ./ s3://prod-nexgen/ |  sed 's/Completed [[:digit:]]\+ part(s) with ... file(s) remaining.//g' | awk '/upload/ {print "/"$2}'`;do export  count=$((1 + $count));list="$list,\"$i\"";done;  list=$(echo -n $list|sed s/^,//); if [ ${list}x != "x" ] ; then echo  "/usr/bin/aws cloudfront create-invalidation --distribution-id E1BAXZ5ASOUV36 --invalidation-batch '{ \"Paths\": { \"Quantity\":$count,\"Items\": [$list]},\"CallerReference\": \"$(date +%Y%m%d%H%M%S)\" }'";else echo ls; fi) | bash -x
