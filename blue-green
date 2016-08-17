@@ -1,0 +1,16 @@
+#!/bin/bash
+ELB_TO_ONLINE=gbrA
+ELB_TO_OFFLINE=gbrB
+
+cd /etc/nginx/conf.d/
+if [  $(ls  | grep offline | grep ${ELB_TO_ONLINE} > /dev/null && echo $?)  ]; then
+	echo Taking  ${ELB_TO_OFFLINE} OFFLINE
+	mv ${ELB_TO_OFFLINE}.conf ${ELB_TO_OFFLINE}.conf.offline 2>/dev/null
+	echo Bringing  ${ELB_TO_ONLINE} ONLINE
+	mv ${ELB_TO_ONLINE}.conf.offline ${ELB_TO_ONLINE}.conf
+	echo Reloading Nginx
+	/etc/init.d/nginx configtest && /etc/init.d/nginx reload
+else
+	echo "${ELB_TO_ONLINE} is already ONLINE"
+	exit 1;
+fi
